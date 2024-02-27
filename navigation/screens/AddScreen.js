@@ -22,6 +22,8 @@ import ImageViewer from "../../componnets/imageViewer";
 import Button from "../../componnets/button";
 import ImagePickerModal from "../../componnets/imagePickerModal";
 
+const IP = 'http://172.20.10.7:3001/api';
+
 export default function AddScreen({ navigation }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -137,7 +139,7 @@ const userId = 2;
 const sendForm = async () => {
   try {
     // Envoi des données du formulaire à la table Advertisements
-    const advertisementResponse = await axios.post("http://127.0.0.1:3001/api/advertisements/create", {
+    const advertisementResponse = await axios.post(`${IP}/advertisements/create`, {
       title,
       description,
       user_id: userId, 
@@ -181,7 +183,7 @@ const uploadImages = async (advertisementId) => {
       console.log(advertisementId)
 
       // Envoyer les données de l'image redimensionnée à la route "upload" de la table "Images"
-      const imageResponse = await axios.post(`http://127.0.0.1:3001/api/images/upload/${advertisementId}`, {
+      const imageResponse = await axios.post(`${IP}/images/upload/${advertisementId}`, {
         image: base64,
       });
 

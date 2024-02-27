@@ -1,20 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
-const HomePage = () => {
+const IP = 'http://172.20.10.7:3001/api';
+
+const HomeScreen = () => {
   const [categoriesWithAds, setCategoriesWithAds] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchCategoriesWithAds = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:3001/api/category');
+        const response = await fetch(`${IP}/category`);
         const data = await response.json();
 
-
+        // Pour chaque catégorie, récupérer les annonces associées
         const categoriesWithAdsData = await Promise.all(
           data.map(async (category) => {
-            const adsResponse = await fetch(`http://127.0.0.1:3001/api/advertisements/category/${category.id}`);
+            const adsResponse = await fetch(`${IP}/advertisements/category/${category.id}`);
             const adsData = await adsResponse.json();
             return { ...category, ads: adsData };
           })
@@ -30,11 +34,17 @@ const HomePage = () => {
     fetchCategoriesWithAds();
   }, []);
 
+  const navigateToAdDetails = (adId) => {
+    navigation.navigate('AdDetailsScreen', { adId });
+  };
+
   const renderAdItem = ({ item }) => (
-    <View style={{ padding: 10 }}>
-      <Text>{item.title}</Text>
-      <Text>{item.description}</Text>
-    </View>
+    <TouchableOpacity onPress={() => navigateToAdDetails(item.id)}>
+      <View style={{ padding: 10 }}>
+        <Text>{item.title}</Text>
+        <Text>{item.description}</Text>
+      </View>
+    </TouchableOpacity>
   );
 
   const renderCategoryItem = ({ item }) => (
@@ -67,4 +77,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default HomeScreen;
