@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect} from "react";
 import {
   View,
   Text,
@@ -11,8 +11,12 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from 'expo-file-system';
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import DropDownPicker from "react-native-dropdown-picker";
+import axios from 'axios';
+import * as ImageManipulator from 'expo-image-manipulator';
+
 
 import ImageViewer from "../../componnets/imageViewer";
 import Button from "../../componnets/button";
@@ -26,47 +30,14 @@ export default function AddScreen({ navigation }) {
   const [address, setAddress] = useState("");
   const [coordinates, setCoordinates] = useState(null);
   const [selectedValue, setSelectedValue] = useState(null);
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(null);
-  const [items, setItems] = useState([
-    {
-      label: "Arbustre",
-      value: "arbustre",
-      icon: () => (
-        <Image
-          source={require("../../assets/icon.png")}
-          style={styles.iconStyle}
-        />
-      ),
-    },
-    {
-      label: "Abustre1",
-      value: "abustre1",
-      parent: "arbustre",
-      icon: () => (
-        <Image
-          source={require("../../assets/icon.png")}
-          style={styles.iconStyle}
-        />
-      ),
-    },
-    {
-      label: "Abustre2",
-      value: "Abustre2",
-      parent: "arbustre",
-      icon: () => (
-        <Image
-          source={require("../../assets/icon.png")}
-          style={styles.iconStyle}
-        />
-      ),
-    },
-    { label: "Fleur", value: "fleur" },
-    { label: "Rose", value: "rose", parent: "fleur" },
-    { label: "Tulipe", value: "tulipe", parent: "fleur" },
-    { label: "Arbre", value: "arbre" },
-    { label: "Plante grimpante", value: "plante_grimpante" },
-  ]);
+  //Category selection
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [categoryValue, setCategoryValue] = useState(null);
+  const [categoryItems, setCategoryItems] = useState([]);
+  //Sub Category selection
+  const [subCategoryOpen, setSubCategoryOpen] = useState(false);
+  const [subCategoryValue, setSubCategoryValue] = useState(null);
+  const [subCategoryItems, setSubCategoryItems] = useState([]);
 
   const titleInputRef = useRef(null);
   const descriptionInputRef = useRef(null);
@@ -79,7 +50,7 @@ export default function AddScreen({ navigation }) {
       aspect: [4, 3],
       quality: 1,
     });
-
+  
     if (!result.canceled) {
       const dateString = new Date().toISOString().split("T")[0];
       const newImages = result.assets.map((asset) => ({
@@ -109,7 +80,127 @@ export default function AddScreen({ navigation }) {
 
   const handleDeleteImage = (index) => {
     setImages((prevImages) => prevImages.filter((_, i) => i !== index));
+    console.log(images)
   };
+
+  //Categories
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const response = await axios.get("http://127.0.0.1:3001/api/category");
+        const categoriesFromApi = response.data;
+
+        // Transformation des données reçues pour les adapter au format attendu
+        const adaptedCategories = categoriesFromApi.map(category => ({
+          label: category.name,
+          value: category.id
+        }));
+
+        // Mise à jour de l'état avec les catégories adaptées
+        setCategoryItems(adaptedCategories);
+      } catch (error) {
+        console.error("Une erreur s'est produite lors de la récupération des catégories :", error);
+      }
+    }
+    // Appel de la fonction pour récupérer les catégories lors du montage du composant
+    fetchCategories();
+  }, []);
+
+  //Sub_categories
+  useEffect(() => {
+    async function fetchSubCategories() {
+      try {
+        if (categoryValue) {
+          const response = await axios.get(`http://127.0.0.1:3001/api/category/${categoryValue}/sub_category`);
+          const subCategoriesFromApi = response.data;
+
+          // Transformation des données reçues pour les adapter au format attendu
+          const adaptedSubCategories = subCategoriesFromApi.map(category => ({
+            label: category.name,
+            value: category.id
+          }));
+
+          // Mise à jour de l'état avec les catégories adaptées
+          setSubCategoryItems(adaptedSubCategories);
+        }
+      } catch (error) {
+        console.error("Une erreur s'est produite lors de la récupération des sous catégories :", error);
+      }
+    }
+
+    // Appel de la fonction pour récupérer les sous-catégories lorsque categoryValue change
+    fetchSubCategories();
+  }, [categoryValue]);
+
+const userId = 2;
+
+const sendForm = async () => {
+  try {
+    // Envoi des données du formulaire à la table Advertisements
+    const advertisementResponse = await axios.post("http://127.0.0.1:3001/api/advertisements/create", {
+      title,
+      description,
+      user_id: userId, 
+      longitude: coordinates.lng,
+      latitude: coordinates.lat,
+      category_id: categoryValue,
+      sub_category_id: subCategoryValue,
+    });
+
+    // Récupérer l'ID de la nouvelle annonce créée
+    const advertisementId = advertisementResponse.data.id;
+
+    // Envoyer les images à la base de données des images
+    await uploadImages(advertisementId);
+
+    // Afficher un message de succès ou naviguer vers une autre page
+    alert("Formulaire envoyé avec succès !");
+  } catch (error) {
+    console.error("Une erreur s'est produite lors de l'envoi du formulaire :", error);
+    // Afficher un message d'erreur à l'utilisateur
+    alert("Une erreur s'est produite lors de l'envoi du formulaire. Veuillez réessayer.");
+  }
+
+};
+
+const uploadImages = async (advertisementId) => {
+  try {
+    for (const image of images) {
+      // Redimensionner et compresser l'image
+      const resizedImage = await ImageManipulator.manipulateAsync(
+        image.uri,
+        [{ resize: { width: 500, height: 500 } }],
+        { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
+      );
+
+      // Convertir le contenu de l'image redimensionnée en chaîne base64
+      const base64 = await FileSystem.readAsStringAsync(resizedImage.uri, { encoding: FileSystem.EncodingType.Base64 });
+
+      console.log(base64);
+      console.log("Taille de l'image après la compression :", base64.length);
+      console.log(advertisementId)
+
+      // Envoyer les données de l'image redimensionnée à la route "upload" de la table "Images"
+      const imageResponse = await axios.post(`http://127.0.0.1:3001/api/images/upload/${advertisementId}`, {
+        image: base64,
+      });
+
+      console.log(imageResponse.data); // Afficher la réponse du serveur (optionnel)
+    }
+    // Toutes les images ont été envoyées avec succès
+    console.log("Toutes les images ont été envoyées avec succès !");
+  } catch (error) {
+    console.error("Une erreur s'est produite lors de l'envoi des images :", error);
+    // Gérer l'erreur selon vos besoins
+  }
+};
+
+
+useEffect(() => {
+  console.log(images);
+}, [images]);
+
+  
 
   return (
     <KeyboardAvoidingView behavior="padding" style={styles.container}>
@@ -214,12 +305,12 @@ export default function AddScreen({ navigation }) {
 
           <View style={styles.dropDownPicker}>
             <DropDownPicker
-              open={open}
-              value={value}
-              items={items}
-              setOpen={setOpen}
-              setValue={setValue}
-              setItems={setItems}
+              open={categoryOpen}
+              value={categoryValue}
+              items={categoryItems}
+              setOpen={setCategoryOpen}
+              setValue={setCategoryValue}
+              setItems={setCategoryItems}
               disableBorderRadius={true}
               listMode="MODAL"
               modalAnimationType="slide"
@@ -256,12 +347,61 @@ export default function AddScreen({ navigation }) {
               }}
             />
           </View>
+
+          {categoryValue &&(
+
+          <View style={styles.dropDownPicker}>
+            <DropDownPicker
+              open={subCategoryOpen}
+              value={subCategoryValue}
+              items={subCategoryItems}
+              setOpen={setSubCategoryOpen}
+              setValue={setSubCategoryValue}
+              setItems={setSubCategoryItems}
+              disableBorderRadius={true}
+              listMode="MODAL"
+              modalAnimationType="slide"
+              modalTitle="Sélectionner une catégorie"
+              placeholder="Plantes"
+              placeholderStyle={{
+                color: "grey",
+              }}
+              showArrowIcon={true}
+              mode="BADGE"
+              searchable={true}
+              searchTextInputProps={{
+                maxLength: 25,
+              }}
+              searchPlaceholder="Ex: Tulipe..."
+              searchContainerStyle={{
+                borderColor: "white",
+                borderBottomColor: "#dfdfdf",
+              }}
+              customItemLabelStyle={{
+                backgroundColor: "red",
+              }}
+              listParentLabelStyle={{
+                fontWeight: "bold",
+              }}
+              listChildContainerStyle={{
+                paddingLeft: 40,
+              }}
+              closeAfterSelecting={true}
+              style={{
+                borderColor: "white",
+                borderRadius: 0,
+                marginBottom: 10,
+              }}
+            />
+          </View>
+          )}
           <View style={styles.sendButtonContainer}>
             <Button
               style={styles.sendButton}
               theme="primary-full"
               icon="plus"
               label="Ajouter l'annonce"
+              onPress={sendForm}
             />
           </View>
 
@@ -358,7 +498,7 @@ const styles = StyleSheet.create({
   },
   sendButtonContainer: {
     alignItems: "center",
-    height: 150,
+    height: 100,
     justifyContent: "center",
   },
   footerText:{
