@@ -10,12 +10,12 @@ import {
   Image,
   KeyboardAvoidingView,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from 'expo-file-system';
-import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
-import DropDownPicker from "react-native-dropdown-picker";
-import axios from 'axios';
-import * as ImageManipulator from 'expo-image-manipulator';
+import * as ImagePicker from "expo-image-picker"; // Image picker for import picture
+import * as FileSystem from 'expo-file-system'; // File system for use picture
+import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete"; // Google maps API
+import DropDownPicker from "react-native-dropdown-picker"; // Drop Down Picker
+import axios from 'axios'; // HTTP request
+import * as ImageManipulator from 'expo-image-manipulator'; // Reduire la taille des images
 
 
 import ImageViewer from "../../componnets/imageViewer";
@@ -29,9 +29,7 @@ export default function AddScreen({ navigation }) {
   const [description, setDescription] = useState("");
   const [images, setImages] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [address, setAddress] = useState("");
   const [coordinates, setCoordinates] = useState(null);
-  const [selectedValue, setSelectedValue] = useState(null);
   //Category selection
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [categoryValue, setCategoryValue] = useState(null);
@@ -40,10 +38,15 @@ export default function AddScreen({ navigation }) {
   const [subCategoryOpen, setSubCategoryOpen] = useState(false);
   const [subCategoryValue, setSubCategoryValue] = useState(null);
   const [subCategoryItems, setSubCategoryItems] = useState([]);
+  
+  const [formComplete, setFormComplete] = useState(false);
+  const [submitButtonClicked, setSubmitButtonClicked] = useState(false);
+  const [showErrorState, setShowErrorState] = useState(false)
 
   const titleInputRef = useRef(null);
   const descriptionInputRef = useRef(null);
   const imageInputRef = useRef(null);
+  
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -134,74 +137,90 @@ export default function AddScreen({ navigation }) {
     fetchSubCategories();
   }, [categoryValue]);
 
-const userId = 2;
+  // Modifiez votre useEffect pour vérifier si le formulaire est complet
+  useEffect(() => {
+    setFormComplete(
+      title.trim().length > 0 &&
+      description.trim().length > 0 &&
+      coordinates !== null &&
+      categoryValue !== null &&
+      subCategoryValue !== null &&
+      images.length > 0
+    );
+  }, [title, description, coordinates, categoryValue, subCategoryValue, images]);
 
-const sendForm = async () => {
-  try {
-    // Envoi des données du formulaire à la table Advertisements
-    const advertisementResponse = await axios.post(`${IP}/advertisements/create`, {
-      title,
-      description,
-      user_id: userId, 
-      longitude: coordinates.lng,
-      latitude: coordinates.lat,
-      category_id: categoryValue,
-      sub_category_id: subCategoryValue,
-    });
+  useEffect(() => {
+    const showError = submitButtonClicked && !formComplete;
+    setShowErrorState(showError); 
+  }, [submitButtonClicked, formComplete]);
 
-    // Récupérer l'ID de la nouvelle annonce créée
-    const advertisementId = advertisementResponse.data.id;
 
-    // Envoyer les images à la base de données des images
-    await uploadImages(advertisementId);
 
-    // Afficher un message de succès ou naviguer vers une autre page
-    alert("Formulaire envoyé avec succès !");
-  } catch (error) {
-    console.error("Une erreur s'est produite lors de l'envoi du formulaire :", error);
-    // Afficher un message d'erreur à l'utilisateur
-    alert("Une erreur s'est produite lors de l'envoi du formulaire. Veuillez réessayer.");
-  }
+  const userId = 2;
 
-};
+  const sendForm = async () => {
+    setSubmitButtonClicked(true);
 
-const uploadImages = async (advertisementId) => {
-  try {
-    for (const image of images) {
-      // Redimensionner et compresser l'image
-      const resizedImage = await ImageManipulator.manipulateAsync(
-        image.uri,
-        [{ resize: { width: 500, height: 500 } }],
-        { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
-      );
+    // Vérification des champs obligatoires
+    if (!title || !description || !coordinates || !categoryValue || !subCategoryValue || images.length === 0) {
+      return; 
+    }
 
-      // Convertir le contenu de l'image redimensionnée en chaîne base64
-      const base64 = await FileSystem.readAsStringAsync(resizedImage.uri, { encoding: FileSystem.EncodingType.Base64 });
 
-      console.log(base64);
-      console.log("Taille de l'image après la compression :", base64.length);
-      console.log(advertisementId)
-
-      // Envoyer les données de l'image redimensionnée à la route "upload" de la table "Images"
-      const imageResponse = await axios.post(`${IP}/images/upload/${advertisementId}`, {
-        image: base64,
+    try {
+      // Envoi des données du formulaire à la table Advertisements
+      const advertisementResponse = await axios.post(`${IP}/advertisements/create`, {
+        title,
+        description,
+        user_id: userId, 
+        longitude: coordinates.lng,
+        latitude: coordinates.lat,
+        category_id: categoryValue,
+        sub_category_id: subCategoryValue,
       });
 
-      console.log(imageResponse.data); // Afficher la réponse du serveur (optionnel)
+      // Récupérer l'ID de la nouvelle annonce créée
+      const advertisementId = advertisementResponse.data.id;
+
+      // Envoyer les images à la base de données des images
+      await uploadImages(advertisementId);
+
+    } catch (error) {
+      console.error("Une erreur s'est produite lors de l'envoi du formulaire :", error);
     }
-    // Toutes les images ont été envoyées avec succès
-    console.log("Toutes les images ont été envoyées avec succès !");
-  } catch (error) {
-    console.error("Une erreur s'est produite lors de l'envoi des images :", error);
-    // Gérer l'erreur selon vos besoins
-  }
-};
 
+  };
 
-useEffect(() => {
-  console.log(images);
-}, [images]);
+  const uploadImages = async (advertisementId) => {
+    try {
+      for (const image of images) {
+        // Redimensionner et compresser l'image
+        const resizedImage = await ImageManipulator.manipulateAsync(
+          image.uri,
+          [{ resize: { width: 500, height: 500 } }],
+          { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
+        );
 
+        // Convertir le contenu de l'image redimensionnée en chaîne base64
+        const base64 = await FileSystem.readAsStringAsync(resizedImage.uri, { encoding: FileSystem.EncodingType.Base64 });
+
+        console.log("Taille de l'image après la compression :", base64.length);
+        console.log(advertisementId)
+
+        // Envoyer les données de l'image redimensionnée à la route "upload" de la table "Images"
+        const imageResponse = await axios.post(`${IP}/images/upload/${advertisementId}`, {
+          image: base64,
+        });
+
+        console.log(imageResponse.data); // Afficher la réponse du serveur (optionnel)
+      }
+      // Toutes les images ont été envoyées avec succès
+      console.log("Toutes les images ont été envoyées avec succès !");
+    } catch (error) {
+      console.error("Une erreur s'est produite lors de l'envoi des images :", error);
+      // Gérer l'erreur selon vos besoins
+    }
+  };
   
 
   return (
@@ -269,7 +288,7 @@ useEffect(() => {
             onSubmitEditing={() => imageInputRef.current.focus()}
           />
 
-          {/* Adresse/ Google maps */}
+          {/* Adresse Google maps */}
           <View style={{ marginBottom: 10 }}>
             <Text style={[styles.label, { paddingTop: 10 }]}>Adresse</Text>
             <ScrollView
@@ -281,8 +300,6 @@ useEffect(() => {
               <GooglePlacesAutocomplete
                 placeholder="2 rue Alphonse Colas, Pl. du Concert, Lille"
                 onPress={(data, details = null) => {
-                  console.log(data, details);
-                  setAddress(data.description);
                   if (details) {
                     setCoordinates(details.geometry.location);
                   }
@@ -297,14 +314,7 @@ useEffect(() => {
             </ScrollView>
           </View>
 
-          {coordinates && (
-            <View style={styles.mapContainer}>
-              <Text>
-                Coordonnées : {coordinates.lat}, {coordinates.lng}
-              </Text>
-            </View>
-          )}
-
+          {/* Category selection */}
           <View style={styles.dropDownPicker}>
             <DropDownPicker
               open={categoryOpen}
@@ -349,71 +359,69 @@ useEffect(() => {
               }}
             />
           </View>
-
-          {categoryValue &&(
-
-          <View style={styles.dropDownPicker}>
-            <DropDownPicker
-              open={subCategoryOpen}
-              value={subCategoryValue}
-              items={subCategoryItems}
-              setOpen={setSubCategoryOpen}
-              setValue={setSubCategoryValue}
-              setItems={setSubCategoryItems}
-              disableBorderRadius={true}
-              listMode="MODAL"
-              modalAnimationType="slide"
-              modalTitle="Sélectionner une catégorie"
-              placeholder="Plantes"
-              placeholderStyle={{
-                color: "grey",
-              }}
-              showArrowIcon={true}
-              mode="BADGE"
-              searchable={true}
-              searchTextInputProps={{
-                maxLength: 25,
-              }}
-              searchPlaceholder="Ex: Tulipe..."
-              searchContainerStyle={{
-                borderColor: "white",
-                borderBottomColor: "#dfdfdf",
-              }}
-              customItemLabelStyle={{
-                backgroundColor: "red",
-              }}
-              listParentLabelStyle={{
-                fontWeight: "bold",
-              }}
-              listChildContainerStyle={{
-                paddingLeft: 40,
-              }}
-              closeAfterSelecting={true}
-              style={{
-                borderColor: "white",
-                borderRadius: 0,
-                marginBottom: 10,
-              }}
-            />
-          </View>
+            
+          {/* SubCategory selection */}
+          {categoryValue &&( // if category selected 
+            <View style={styles.dropDownPicker}>
+              <DropDownPicker
+                open={subCategoryOpen}
+                value={subCategoryValue}
+                items={subCategoryItems}
+                setOpen={setSubCategoryOpen}
+                setValue={setSubCategoryValue}
+                setItems={setSubCategoryItems}
+                disableBorderRadius={true}
+                listMode="MODAL"
+                modalAnimationType="slide"
+                modalTitle="Sélectionner une catégorie"
+                placeholder="Plantes"
+                placeholderStyle={{
+                  color: "grey",
+                }}
+                showArrowIcon={true}
+                mode="BADGE"
+                searchable={true}
+                searchTextInputProps={{
+                  maxLength: 25,
+                }}
+                searchPlaceholder="Ex: Tulipe..."
+                searchContainerStyle={{
+                  borderColor: "white",
+                  borderBottomColor: "#dfdfdf",
+                }}
+                customItemLabelStyle={{
+                  backgroundColor: "red",
+                }}
+                listParentLabelStyle={{
+                  fontWeight: "bold",
+                }}
+                listChildContainerStyle={{
+                  paddingLeft: 40,
+                }}
+                closeAfterSelecting={true}
+                style={{
+                  borderColor: "white",
+                  borderRadius: 0,
+                  marginBottom: 10,
+                }}
+              />
+            </View>
           )}
+          {/* Affichage du message d'erreur s'il y a lieu */}
+          {submitButtonClicked && !formComplete && (
+            <Text style={styles.errorMessage}>Veuillez remplir tous les champs avant de valider.</Text>
+          )}
+          
+
+          {/* Submit button */}
           <View style={styles.sendButtonContainer}>
             <Button
               style={styles.sendButton}
               theme="primary-full"
-              icon="plus"
               label="Ajouter l'annonce"
               onPress={sendForm}
             />
           </View>
-
-          <ImagePickerModal
-            visible={modalVisible}
-            onClose={() => setModalVisible(false)}
-            onSelectFromGallery={pickImage}
-            onTakePhoto={takePhoto}
-          />
-
 
           <Text style={styles.footerText}>
             Soyez rassuré ...
@@ -421,6 +429,14 @@ useEffect(() => {
           <Text style={styles.footerText}>
             L'adresse de votre logement est affiché sous la forme d'une zone geograpgique et non d'un point.
           </Text>
+
+          {/* Image Picker Modal */}
+          <ImagePickerModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          onSelectFromGallery={pickImage}
+          onTakePhoto={takePhoto}
+          />
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
@@ -509,5 +525,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: "center",
     color: "grey",
+  },
+
+  invalidInput: {
+    borderColor: 'red',
+  },
+  errorMessage: {
+    textAlign: "center",
+    color: 'red',
+    fontSize: 12,
   },
 });

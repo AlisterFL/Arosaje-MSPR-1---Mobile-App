@@ -1,13 +1,14 @@
 import { StyleSheet, View, Pressable, Text } from 'react-native';
 import AntDesign from "@expo/vector-icons/AntDesign";
 
-export default function Button({ label, theme, onPress, icon, size = 20, color = "#A3D288"}) {
+export default function Button({ label, theme, onPress, icon, size = 20, color = "#A3D288", disabled = false}) {
     if (theme === "primary-icon") {
       return (
         <View style={[styles.buttonContainer, { borderWidth: 2, borderColor: "#A3D288" }]}>
           <Pressable
             style={[styles.button, { backgroundColor: "#FFFFFF00" }]}
             onPress={onPress}
+            disabled={disabled}
           >
             <AntDesign
               name={icon}
@@ -25,6 +26,7 @@ export default function Button({ label, theme, onPress, icon, size = 20, color =
           <Pressable
             style={[styles.button, { backgroundColor: "#A3D288" }]}
             onPress={onPress}
+            disabled={disabled}
           >
             <Text style={[styles.buttonLabel, { color: "white" }]}>{label}</Text>
           </Pressable>
@@ -35,6 +37,7 @@ export default function Button({ label, theme, onPress, icon, size = 20, color =
         <View style={[styles.buttonContainerJustIcon, { borderWidth: 2, borderColor: "#A3D288" }]}>
           <Pressable
             onPress={onPress}
+            disabled={disabled}
           >
             <AntDesign
               name={icon}
@@ -50,6 +53,7 @@ export default function Button({ label, theme, onPress, icon, size = 20, color =
               <Pressable
                 style={[styles.buttonLittle, { backgroundColor: "#FFFFFF00" }]}
                 onPress={onPress}
+                disabled={disabled}
               >
                 <AntDesign
                   name={icon}
