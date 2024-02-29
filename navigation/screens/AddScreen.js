@@ -20,11 +20,13 @@ import * as ImageManipulator from 'expo-image-manipulator'; // Reduire la taille
 import DatePicker, { getToday } from 'react-native-modern-datepicker'; // Date picker
 
 
-import ImageViewer from "../../componnets/imageViewer";
-import ButtonEdit from "../../componnets/button";
-import ImagePickerModal from "../../componnets/imagePickerModal";
+import ImageViewer from "../../components/imageViewer";
+import ButtonEdit from "../../components/button";
+import ImagePickerModal from "../../components/imagePickerModal";
+import { IP_Server } from "../../components/const";
 
-const IP = 'http://172.20.10.7:3001/api';
+
+const IP = IP_Server;
 
 export default function AddScreen({ navigation }) {
   const [title, setTitle] = useState("");
@@ -45,6 +47,8 @@ export default function AddScreen({ navigation }) {
   const [selectedEndDate, setSelectedEndDate] = useState('');
   const currentDate = getToday();
   
+  const [city, setCity] = useState('');
+  const [postalCode, setPostalCode] = useState('');
   
   const [formComplete, setFormComplete] = useState(false);
   const [submitButtonClicked, setSubmitButtonClicked] = useState(false);
@@ -154,14 +158,21 @@ export default function AddScreen({ navigation }) {
       subCategoryValue !== null &&
       images.length > 0 &&
       selectedStartDate !== null &&
-      selectedEndDate !== null
+      selectedEndDate !== null &&
+      postalCode !== null &&
+      city !== null
     );
-  }, [title, description, coordinates, categoryValue, subCategoryValue, images, selectedStartDate, selectedEndDate]);
+  }, [title, description, coordinates, categoryValue, subCategoryValue, images, selectedStartDate, selectedEndDate, postalCode, city]);
 
   useEffect(() => {
     const showError = submitButtonClicked && !formComplete;
     setShowErrorState(showError); 
   }, [submitButtonClicked, formComplete]);
+
+  useEffect(() => {
+    
+    console.log(coordinates)
+  }, [coordinates]);
 
 
 
@@ -171,7 +182,7 @@ export default function AddScreen({ navigation }) {
     setSubmitButtonClicked(true);
 
     // Vérification des champs obligatoires
-    if (!title || !description || !coordinates || !categoryValue || !subCategoryValue || !selectedStartDate || !selectedEndDate|| images.length === 0) {
+    if (!title || !description || !coordinates || !categoryValue || !subCategoryValue || !selectedStartDate || !selectedEndDate|| !postalCode || !city || images.length === 0) {
       return; 
     }
 
@@ -187,8 +198,9 @@ export default function AddScreen({ navigation }) {
         category_id: categoryValue,
         sub_category_id: subCategoryValue,
         start_date: selectedStartDate,
-        end_date: selectedEndDate
-
+        end_date: selectedEndDate,
+        city: city,
+        postal_code: postalCode
       });
 
       // Récupérer l'ID de la nouvelle annonce créée
@@ -313,8 +325,28 @@ export default function AddScreen({ navigation }) {
                 placeholder="2 rue Alphonse Colas, Pl. du Concert, Lille"
                 onPress={(data, details = null) => {
                   if (details) {
-                    setCoordinates(details.geometry.location);
+                    // Extraire la ville à partir des détails de l'adresse
+                    const city = details.address_components.find(component =>
+                      component.types.includes("locality")
+                    );
+
+                    // Extraire le code postal à partir des détails de l'adresse
+                    const postalCode = details.address_components.find(component =>
+                      component.types.includes("postal_code")
+                    );
+              
+                    // Vérifier si la ville a été trouvée
+                    if (city) {
+                      // Utiliser la ville comme vous le souhaitez
+                      console.log("Ville sélectionnée :", city.long_name);
+                      console.log("Code postal :", postalCode.long_name);
+                      // Stocker la ville dans un état par exemple
+                      setCity(city.long_name);
+                      setPostalCode(postalCode.long_name);
+                    }
                   }
+                  // Stocker également les coordonnées si nécessaire
+                  setCoordinates(details.geometry.location);
                 }}
                 query={{
                   key: "AIzaSyBk7T5n-mYooDyw9eHCK1OkOs4AQp4Ttq4",

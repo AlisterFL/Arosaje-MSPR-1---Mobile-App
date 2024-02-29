@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StatusBar, ActivityIndicator, SafeAreaView, Dimensions, StyleSheet } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import MapView, { Circle } from 'react-native-maps';
+import { IP_Server } from '../../components/const'; 
 
-const IP = 'http://172.20.10.7:3001/api';
+const IP = IP_Server;
 const windowDimensions = Dimensions.get('window');
 const ONE_KM_IN_DEGREE = 0.009;
 

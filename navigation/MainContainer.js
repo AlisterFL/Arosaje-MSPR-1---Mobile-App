@@ -11,6 +11,7 @@ import AddScreen from "./screens/AddScreen";
 import ChatScreen from "./screens/ChatScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 import AdDetailsScreen from "./screens/AdDetailsScreen";
+import SignupScreen from "./screens/UsersScreen/SignUpScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -21,6 +22,7 @@ export default function MainContainer() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="AdDetailsScreen" component={AdDetailsScreen} />
+        <Stack.Screen name="SignupScreen" component={SignupScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
