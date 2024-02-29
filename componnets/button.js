@@ -1,7 +1,7 @@
 import { StyleSheet, View, Pressable, Text } from 'react-native';
 import AntDesign from "@expo/vector-icons/AntDesign";
 
-export default function Button({ label, theme, onPress, icon, size = 20, color = "#A3D288", disabled = false}) {
+export default function ButtonEdit({ label, theme, onPress, icon, size = 20, color = "#A3D288", disabled = false}) {
     if (theme === "primary-icon") {
       return (
         <View style={[styles.buttonContainer, { borderWidth: 2, borderColor: "#A3D288" }]}>

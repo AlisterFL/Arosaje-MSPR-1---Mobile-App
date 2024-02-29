@@ -10,7 +10,7 @@ export default function ChatScreen({ navigation }) {
 
     const fetchData = async () => {
         try {
-            const response = await fetch('http://172.20.10.7:3001/api/images/37'); // Appel de l'API avec advertisement_id = 36
+            const response = await fetch('http://172.20.10.7:3001/api/images/1'); // Appel de l'API avec advertisement_id = 36
             if (response.ok) {
                 const data = await response.json();
                 // Préfixer chaque base64 avec 'data:image/jpeg;base64,'

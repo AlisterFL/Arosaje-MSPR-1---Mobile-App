@@ -9,6 +9,7 @@ import {
   Keyboard,
   Image,
   KeyboardAvoidingView,
+  Button,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker"; // Image picker for import picture
 import * as FileSystem from 'expo-file-system'; // File system for use picture
@@ -16,10 +17,11 @@ import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplet
 import DropDownPicker from "react-native-dropdown-picker"; // Drop Down Picker
 import axios from 'axios'; // HTTP request
 import * as ImageManipulator from 'expo-image-manipulator'; // Reduire la taille des images
+import DatePicker, { getToday } from 'react-native-modern-datepicker'; // Date picker
 
 
 import ImageViewer from "../../componnets/imageViewer";
-import Button from "../../componnets/button";
+import ButtonEdit from "../../componnets/button";
 import ImagePickerModal from "../../componnets/imagePickerModal";
 
 const IP = 'http://172.20.10.7:3001/api';
@@ -38,6 +40,11 @@ export default function AddScreen({ navigation }) {
   const [subCategoryOpen, setSubCategoryOpen] = useState(false);
   const [subCategoryValue, setSubCategoryValue] = useState(null);
   const [subCategoryItems, setSubCategoryItems] = useState([]);
+  //Start Date selection
+  const [selectedStartDate, setSelectedStartDate] = useState('');
+  const [selectedEndDate, setSelectedEndDate] = useState('');
+  const currentDate = getToday();
+  
   
   const [formComplete, setFormComplete] = useState(false);
   const [submitButtonClicked, setSubmitButtonClicked] = useState(false);
@@ -145,9 +152,11 @@ export default function AddScreen({ navigation }) {
       coordinates !== null &&
       categoryValue !== null &&
       subCategoryValue !== null &&
-      images.length > 0
+      images.length > 0 &&
+      selectedStartDate !== null &&
+      selectedEndDate !== null
     );
-  }, [title, description, coordinates, categoryValue, subCategoryValue, images]);
+  }, [title, description, coordinates, categoryValue, subCategoryValue, images, selectedStartDate, selectedEndDate]);
 
   useEffect(() => {
     const showError = submitButtonClicked && !formComplete;
@@ -162,7 +171,7 @@ export default function AddScreen({ navigation }) {
     setSubmitButtonClicked(true);
 
     // Vérification des champs obligatoires
-    if (!title || !description || !coordinates || !categoryValue || !subCategoryValue || images.length === 0) {
+    if (!title || !description || !coordinates || !categoryValue || !subCategoryValue || !selectedStartDate || !selectedEndDate|| images.length === 0) {
       return; 
     }
 
@@ -177,6 +186,9 @@ export default function AddScreen({ navigation }) {
         latitude: coordinates.lat,
         category_id: categoryValue,
         sub_category_id: subCategoryValue,
+        start_date: selectedStartDate,
+        end_date: selectedEndDate
+
       });
 
       // Récupérer l'ID de la nouvelle annonce créée
@@ -233,7 +245,7 @@ export default function AddScreen({ navigation }) {
         >
           {images.length == 0 && (
             <View style={[styles.buttonContainer, { marginBottom: 15 }]}>
-              <Button
+              <ButtonEdit
                 style={styles.buttonAddImage1}
                 theme="primary-icon"
                 icon="plus"
@@ -255,7 +267,7 @@ export default function AddScreen({ navigation }) {
                       style={styles.imageItem}
                     />
                   ))}
-                  <Button
+                  <ButtonEdit
                     style={styles.buttonInImage}
                     theme="just-icon"
                     icon="plus"
@@ -355,7 +367,7 @@ export default function AddScreen({ navigation }) {
               style={{
                 borderColor: "white",
                 borderRadius: 0,
-                marginBottom: 10,
+                marginBottom: 15,
               }}
             />
           </View>
@@ -407,6 +419,37 @@ export default function AddScreen({ navigation }) {
               />
             </View>
           )}
+
+          <View style={styles.datePicker}>
+            <Text style={[styles.label, { paddingTop: 10 }]}>Date de début</Text>
+            <DatePicker
+                onSelectedChange={date => setSelectedStartDate(date)}
+                mode="calendar"
+                minimumDate={currentDate}
+                options={{
+                    selectedTextColor: '#fff',
+                    mainColor: '#A3D288',
+                  }}
+              />
+
+            {selectedStartDate &&(
+              <View>
+                <Text style={[styles.label, { paddingTop: 10 }]}>Date de fin</Text>
+                <DatePicker
+                    onSelectedChange={date => setSelectedEndDate(date)}
+                    mode="calendar"
+                    minimumDate={selectedStartDate}
+                    current= {selectedStartDate}
+                    options={{
+                        selectedTextColor: '#fff',
+                        mainColor: '#A3D288',
+                      }}
+                  />
+              </View>
+
+            )}
+          </View>
+
           {/* Affichage du message d'erreur s'il y a lieu */}
           {submitButtonClicked && !formComplete && (
             <Text style={styles.errorMessage}>Veuillez remplir tous les champs avant de valider.</Text>
@@ -415,7 +458,7 @@ export default function AddScreen({ navigation }) {
 
           {/* Submit button */}
           <View style={styles.sendButtonContainer}>
-            <Button
+            <ButtonEdit
               style={styles.sendButton}
               theme="primary-full"
               label="Ajouter l'annonce"
@@ -533,6 +576,10 @@ const styles = StyleSheet.create({
   errorMessage: {
     textAlign: "center",
     color: 'red',
-    fontSize: 12,
+    fontSize:
+    12,
   },
+  datePicker: {
+    backgroundColor: "white",
+  }
 });

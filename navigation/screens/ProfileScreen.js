@@ -1,12 +1,28 @@
-import * as React from 'react';
-import { View, Text } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Button } from 'react-native';
+import DatePicker, { getToday } from 'react-native-modern-datepicker';
+
 
 export default function ProfileScreen({navigation}) {
-    return (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Text
-                onPress={() => navigation.navigate('Home')}
-                style={{ fontSize: 26, fontWeight: 'bold' }}>Profil screen</Text>
-        </View>
-    );
+    const [selectedDate, setSelectedDate] = useState('');
+    const currentDate = getToday();
+
+  return (
+    <View>
+        <DatePicker
+            onSelectedChange={date => setSelectedDate(date)}
+            mode="calendar"
+            minimumDate={currentDate}
+            options={{
+                selectedTextColor: '#fff',
+                mainColor: '#A3D288',
+              }}
+          />
+        
+        <Text>Date sélectionnée : {selectedDate}</Text>
+        <Text>Date sélectionnée : {currentDate}</Text>
+
+
+    </View>
+  )
 }
