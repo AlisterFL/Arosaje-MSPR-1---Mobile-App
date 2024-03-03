@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { View, Button } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 
 import LogInScreen from './UsersScreen/LogInScreen';
 import UserInfoScreen from './UsersScreen/UserInfoScreen';
+import SignUpScreen from './UsersScreen/SignUpScreen';
 import { IP_Server } from '../../components/const'; 
 
 const IP = IP_Server;
@@ -11,7 +11,7 @@ const IP = IP_Server;
 const ProfileScreen = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
-  const navigation = useNavigation();
+  const [isSignUp, setIsSignUp] = useState(false);
 
   const handleLogin = async (email, password) => {
     try {
@@ -46,7 +46,7 @@ const ProfileScreen = () => {
   };
 
   const handleSignUp = () => {
-    navigation.navigate('SignupScreen');
+    setIsSignUp(true); // Lorsque l'utilisateur souhaite s'inscrire, passez à true
   };
 
   return (
@@ -57,7 +57,11 @@ const ProfileScreen = () => {
           <Button title="Logout" onPress={handleLogout} />
         </>
       ) : (
-        <LogInScreen onLogin={handleLogin} onSignUp={handleSignUp} />
+        isSignUp ? (
+          <SignUpScreen setIsSignUp={setIsSignUp} />
+        ) : (
+          <LogInScreen onLogin={handleLogin} onSignUp={handleSignUp} />
+        )
       )}
     </View>
   );

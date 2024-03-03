@@ -96,22 +96,22 @@ const HomeScreen = () => {
                   source={{ uri: `data:image/jpeg;base64,${item.images.image}` }}
                   style={styles.adImage}
               />
-              <View style={styles.InfoContainer}>
-                <View>
+              <View style={styles.MoreInfoContainer}>
+                <View style={styles.adTitleContainer}>
                   <Text style={styles.adTitle}>{truncatedTitle}</Text>
-                </View>
-                <View style={styles.MoreInfoContainer}>
-                  <View style={styles.locationContainer}>
-                    <Text style={styles.adCity}>{item.city}</Text>
-                    <Text style={styles.adPostaleCode}>{item.postal_code}</Text>
-                  </View>
-                  <View style={styles.dateContainer}>
-                    <Text style={styles.adStartDate}>{item.start_date}</Text>
-                    <Text> - </Text>
-                    <Text style={styles.adEndDate}>{item.end_date}</Text>
-                  </View>
-                  <View style={styles.subCategoriesContainer}>
-                    <Text style={styles.subCategories}>{subCategoryName}</Text>
+                  <View style={styles.MoreInfoContainer}>
+                    <View style={styles.locationContainer}>
+                      <Text style={styles.adCity}>{item.city}</Text>
+                      <Text style={styles.adPostaleCode}>{item.postal_code}</Text>
+                    </View>
+                    <View style={styles.dateContainer}>
+                      <Text style={styles.adStartDate}>{item.start_date}</Text>
+                      <Text> - </Text>
+                      <Text style={styles.adEndDate}>{item.end_date}</Text>
+                    </View>
+                    <View style={styles.subCategoriesContainer}>
+                      <Text style={styles.subCategories}>{subCategoryName}</Text>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -123,7 +123,8 @@ const HomeScreen = () => {
 
   const renderCategoryItem = ({ item }) => (
     <View style={{ padding: 10 }}>
-    <Text style={{ fontWeight: "bold", fontSize: 18 }}>{item.name}</Text>
+    <Text style={{ fontWeight: "bold", fontSize: 18, color: "#767676",}}>{item.name}</Text>
+    <Text style={{ fontWeight: "normal", fontSize: 14, color:"#989696", marginBottom: 20 }}>Types de plantes qui pourrait vous interesser ...</Text>
     <FlatList
       data={item.ads}
       renderItem={renderAdItem}
@@ -136,7 +137,7 @@ const HomeScreen = () => {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center"}}>
         <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
@@ -157,8 +158,8 @@ export default HomeScreen;
 
 const styles = StyleSheet.create({
   adContainer:{
-    width: 200,
-    height: 260,
+    width: 220,
+    height: 280,
   },
   InfoContainer:{
     flex: 1,
@@ -166,36 +167,54 @@ const styles = StyleSheet.create({
   },
   MoreInfoContainer:{
     flex: 1,
-    justifyContent:"flex-end"
+    justifyContent:"space-between"
   },
   adImage:{
-    width: 200,
-    height: 150,
-    borderRadius: 15,
+    width: 220,
+    height: 170,
+    borderRadius: 25,
+  },
+  adTitleContainer: {
+    height: 100,
+    justifyContent: "center",
   },
   adTitle:{
     fontSize: 18,
-    height: 44, 
-    backgroundColor: "red",
+    fontWeight:"bold",
+    color:"#767676",
+    marginHorizontal: 5,
   },
   locationContainer:{
     flexDirection:"row", 
     alignItems: 'flex-end', 
-    gap: 4
+    gap: 4,
+    marginHorizontal: 5,
   },
   adCity:{
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'medium',
+    color:"#4A4A4A",
+  },
+  adPostaleCode:{
+    color:"#4A4A4A"
   },
   dateContainer:{
     flexDirection: "row",
+    marginHorizontal: 5,
+  },
+  adStartDate:{
+    color:"#4A4A4A",
+  },
+  adEndDate:{
+    color:"#4A4A4A",
   },
   subCategoriesContainer:{
     marginTop: 5,
     backgroundColor:"#D9D9D9",
     width: "auto",
     alignSelf: 'flex-start',
-    borderRadius: 20,
+    borderRadius: 10,
+    marginHorizontal: 5,
   },
   subCategories:{
     color:"#767676",

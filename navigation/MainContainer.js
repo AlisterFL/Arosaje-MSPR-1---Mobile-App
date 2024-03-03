@@ -1,8 +1,9 @@
 import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { Text } from "react-native";
 
 // Screens
 import HomeScreen from "./screens/HomeScreen";
@@ -53,10 +54,22 @@ function MainTabs() {
         tabBarActiveTintColor: "#A3D288",
         tabBarInactiveTintColor: "grey",
         tabBarLabelStyle: { paddingBottom: 0, fontSize: 10 },
-        tabBarStyle: { paddingTop: 10, height: 80 }
+        tabBarStyle: { paddingTop: 10, height: 80 },
       })}
     >
-      <Tab.Screen name="Accueil" component={HomeScreen} />
+      <Tab.Screen
+        name="Accueil"
+        component={HomeScreen}
+        options={{
+          headerShown: true, // Afficher l'en-tête
+          headerStyle: { height: 110}, // Style de l'en-tête
+          headerTintColor: "white", // Couleur du texte de l'en-tête
+          headerTitle: () => (
+            <Text style={{ fontSize: 30, fontWeight: "bold"}}>A Rosa-je</Text>
+          ),
+
+        }}
+      />
       <Tab.Screen name="Rechercher" component={ResearchScreen} />
       <Tab.Screen name="Ajouter" component={AddScreen} />
       <Tab.Screen name="Message" component={ChatScreen} />
