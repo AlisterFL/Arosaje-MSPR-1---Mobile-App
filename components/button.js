@@ -44,6 +44,18 @@ export default function ButtonEdit({ label, theme, onPress, icon, size = 20, col
             </Pressable>
           </View>
         );
+        } else if (theme === "primary-border-small") {
+          return (
+            <View style={[styles.buttonContainerSmall, { borderWidth: 2, borderColor: "#A3D288" }]}>
+              <Pressable
+                style={[styles.button]}
+                onPress={onPress}
+                disabled={disabled}
+              >
+                <Text style={[styles.buttonLabel, { color: "#A3D288" }]}>{label}</Text>
+              </Pressable>
+            </View>
+          );
         } else if (theme === "just-icon") {
       return (
         <View style={[styles.buttonContainerJustIcon, { borderWidth: 2, borderColor: "#A3D288" }]}>
@@ -109,6 +121,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 3,
+  },
+  buttonContainerSmall: {
+    width: 90,
+    height: 35,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 7,
   },
   button: {
     borderRadius: 5,

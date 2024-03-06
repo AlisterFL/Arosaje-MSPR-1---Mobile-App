@@ -71,7 +71,19 @@ function MainTabs() {
         }}
       />
       <Tab.Screen name="Rechercher" component={ResearchScreen} />
-      <Tab.Screen name="Ajouter" component={AddScreen} />
+      <Tab.Screen
+        name="Ajouter"
+        component={AddScreen}
+        options={{
+          headerShown: true, // Afficher l'en-tête
+          headerStyle: { height: 110}, // Style de l'en-tête
+          headerTintColor: "white", // Couleur du texte de l'en-tête
+          headerTitle: () => (
+            <Text style={{ fontSize: 20}}>Ajouter une annonce</Text>
+          ),
+
+        }}
+      />
       <Tab.Screen name="Message" component={ChatScreen} />
       <Tab.Screen name="Profil" component={ProfileScreen} />
     </Tab.Navigator>
