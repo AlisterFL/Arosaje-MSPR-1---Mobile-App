@@ -32,7 +32,19 @@ export default function ButtonEdit({ label, theme, onPress, icon, size = 20, col
           </Pressable>
         </View>
       );
-      } else if (theme === "just-icon") {
+      } else if (theme === "primary-border") {
+        return (
+          <View style={[styles.buttonContainer, { borderWidth: 2, borderColor: "#A3D288" }]}>
+            <Pressable
+              style={[styles.button]}
+              onPress={onPress}
+              disabled={disabled}
+            >
+              <Text style={[styles.buttonLabel, { color: "#A3D288" }]}>{label}</Text>
+            </Pressable>
+          </View>
+        );
+        } else if (theme === "just-icon") {
       return (
         <View style={[styles.buttonContainerJustIcon, { borderWidth: 2, borderColor: "#A3D288" }]}>
           <Pressable

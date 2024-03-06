@@ -54,7 +54,7 @@ const HomeScreen = () => {
                   // Pour chaque annonce, récupérer les images associées
                   const adsWithData = await Promise.all(
                       adsData.map(async (ad) => {
-                const imagesResponse = await fetch(`${IP}/images/${ad.id}`);
+                const imagesResponse = await fetch(`${IP}/images/all/${ad.id}`);
                 const imagesData = await imagesResponse.json();
                 // console.log(imagesData);
                 return { ...ad, images: imagesData };
@@ -93,7 +93,7 @@ const HomeScreen = () => {
         <TouchableOpacity onPress={() => navigateToAdDetails(item.id)}>
           <View style={styles.adContainer}>
               <Image
-                  source={{ uri: `data:image/jpeg;base64,${item.images.image}` }}
+                  source={{ uri: `data:image/jpeg;base64,${item.images[0].image}` }}
                   style={styles.adImage}
               />
               <View style={styles.MoreInfoContainer}>

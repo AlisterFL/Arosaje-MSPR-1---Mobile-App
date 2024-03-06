@@ -1,84 +1,116 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import React, { useState } from "react";
 import bcrypt from "react-native-bcrypt";
+import { View, Text, TextInput, Button, StyleSheet } from "react-native";
 import { IP_Server } from "../../../components/const";
+import { useAuth } from "../../../components/AuthContext";
+import ProfileScreen from "../ProfileScreen";
+import ButtonEdit from "../../../components/button";
 
 const LogInScreen = ({ onLogin, onSignUp }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { isLoggedIn, login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const IP = IP_Server;
+  const isLog = false
 
   const handleLogin = () => {
-    // Hasher le mot de passe avec bcrypt
-    const hashedPassword = bcrypt.hashSync(password, 10);
-    console.log(hashedPassword)
+    const url = `${IP}/users/log_infos/${encodeURIComponent(email)}`;
 
-    // Envoyer les informations à l'API
-    fetch(`${IP}/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: email,
-        password: hashedPassword, 
-      }),
-    })
-      .then(response => {
+    fetch(url)
+      .then((response) => {
         if (!response.ok) {
-          throw new Error('Erreur lors de la tentative de connexion.');
+          throw new Error("Erreur lors de la tentative de connexion.");
         }
         return response.json();
       })
-      .then(data => {
-        // Si la connexion réussit, appeler la fonction onLogin avec les informations de l'utilisateur
-        onLogin(data);
+      .then((data) => {
+        if (data.length > 0) {
+          const user = data[0];
+          const storedHashedPassword = user.password;
+
+          const passwordMatches = bcrypt.compareSync(
+            password,
+            storedHashedPassword
+          );
+
+          console.log("Fetch password:", storedHashedPassword);
+
+          if (passwordMatches) {
+            console.log("Connecté");
+            login(user);
+          } else {
+            console.log("Les mots de passe ne correspondent pas");
+          }
+        } else {
+          console.error("Aucun utilisateur trouvé avec cet email.");
+        }
       })
-      .catch(error => {
-        // En cas d'erreur, afficher un message d'erreur
-        setErrorMessage(error.message);
+      .catch((error) => {
+        console.error(error.message);
       });
   };
+  if (isLog) {
+    return <ProfileScreen />;
+  } else {
+    console.log(isLog);
+    return (
+      <View style={styles.container}>
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          onChangeText={(text) => setEmail(text)}
+          value={email}
+          keyboardType="email-address"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          onChangeText={(text) => setPassword(text)}
+          value={password}
+          secureTextEntry
+        />
+        <View style={styles.sendButtonContainer}>
+          <ButtonEdit
+            style={styles.sendButton}
+            theme="primary-full"
+            label="Se connecter"
+            onPress={handleLogin}
+          />
+        </View>
+        <View style={styles.sendButtonContainer}>
+          <ButtonEdit
+            style={styles.sendButton}
+            theme="primary-border"
+            label="Créer un compte"
+            onPress={onSignUp}
+          />
+        </View>
 
-  return (
-    <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        onChangeText={text => setEmail(text)}
-        value={email}
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        onChangeText={text => setPassword(text)}
-        value={password}
-        secureTextEntry
-      />
-      <Button title="Login" onPress={handleLogin} />
-      <Button title="Créer un compte" style={styles.signupText} onPress={onSignUp}/>
-    </View>
-  );
+      </View>
+    );
+  }
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 20,
   },
   input: {
-    height: 40,
-    borderColor: 'gray',
+    height: 50,
+    width: 300,
+    borderColor: "gray",
     borderWidth: 1,
-    marginBottom: 10,
+    marginBottom: 15,
     paddingHorizontal: 10,
+    borderRadius:10,
   },
-  signupText: {
-    marginTop: 10,
-    color: 'blue',
+  sendButtonContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 15,
   },
 });
 

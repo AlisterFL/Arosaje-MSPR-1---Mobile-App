@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import bcrypt from "react-native-bcrypt";
 import { IP_Server } from "../../../components/const";
+import ButtonEdit from "../../../components/button";
 
 const IP = IP_Server;
 const SignUpScreen = ({ setIsSignUp }) => {
@@ -75,7 +76,7 @@ const SignUpScreen = ({ setIsSignUp }) => {
       .then((data) => {
         // Traitement de la réponse en cas de succès
         console.log("Success:", data);
-        // Redirection vers une autre page ou autre action si nécessaire
+        setIsSignUp(false)
       })
       .catch((error) => {
         // Gérer les erreurs ici
@@ -117,8 +118,23 @@ const SignUpScreen = ({ setIsSignUp }) => {
         secureTextEntry
       />
       <Text style={styles.errorMessage}>{errorMessage}</Text>
-      <Button title="S'inscrire" onPress={handleSubmit} />
-      <Button title="Se connecter" onPress={() => setIsSignUp(false)} />
+
+      <View style={styles.sendButtonContainer}>
+          <ButtonEdit
+            style={styles.sendButton}
+            theme="primary-full"
+            label="S'inscrire"
+            onPress={handleSubmit}
+          />
+        </View>
+        <View style={styles.sendButtonContainer}>
+          <ButtonEdit
+            style={styles.sendButton}
+            theme="primary-border"
+            label="Se connecter "
+            onPress={() => setIsSignUp(false)}
+          />
+        </View>
     </View>
   );
 };
@@ -126,15 +142,23 @@ const SignUpScreen = ({ setIsSignUp }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 20,
   },
   input: {
-    height: 40,
+    height: 50,
+    width: 300,
     borderColor: "gray",
     borderWidth: 1,
-    marginBottom: 10,
+    marginBottom: 15,
     paddingHorizontal: 10,
+    borderRadius:10,
+  },
+  sendButtonContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 15,
   },
   errorMessage: {
     color: "red",
