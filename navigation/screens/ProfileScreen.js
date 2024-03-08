@@ -13,30 +13,8 @@ const ProfileScreen = () => {
   const [user, setUser] = useState(null);
   const [isSignUp, setIsSignUp] = useState(false);
 
-  const handleLogin = async (email, password) => {
-    try {
-      // Appel à votre API pour authentifier l'utilisateur
-      const response = await fetch(`${IP}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await response.json();
-
-      // Vérifie si la connexion est réussie
-      if (response.ok) {
-        // Met à jour l'état avec les données de l'utilisateur connecté
-        setUser(data.user);
-        setIsLoggedIn(true);
-      } else {
-        // Gère les cas où la connexion échoue (par exemple, mauvais email/mot de passe)
-        console.error('Login failed:', data.error);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
+  const handleLogin = () => {
+    console.log("utilisateur connécté")
   };
 
   const handleLogout = () => {

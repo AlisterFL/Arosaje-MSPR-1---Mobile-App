@@ -11,7 +11,7 @@ const LogInScreen = ({ onLogin, onSignUp }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const IP = IP_Server;
-  const isLog = false
+  const [isLog, setIsLog] = useState(false);
 
   const handleLogin = () => {
     const url = `${IP}/users/log_infos/${encodeURIComponent(email)}`;
@@ -37,6 +37,7 @@ const LogInScreen = ({ onLogin, onSignUp }) => {
 
           if (passwordMatches) {
             console.log("Connecté");
+            onLogin(user);
             login(user);
           } else {
             console.log("Les mots de passe ne correspondent pas");
@@ -49,10 +50,6 @@ const LogInScreen = ({ onLogin, onSignUp }) => {
         console.error(error.message);
       });
   };
-  if (isLog) {
-    return <ProfileScreen />;
-  } else {
-    console.log(isLog);
     return (
       <View style={styles.container}>
         <TextInput
@@ -89,7 +86,6 @@ const LogInScreen = ({ onLogin, onSignUp }) => {
       </View>
     );
   }
-};
 
 const styles = StyleSheet.create({
   container: {
