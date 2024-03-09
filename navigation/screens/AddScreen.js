@@ -18,6 +18,7 @@ import DropDownPicker from "react-native-dropdown-picker"; // Drop Down Picker
 import axios from 'axios'; // HTTP request
 import * as ImageManipulator from 'expo-image-manipulator'; // Reduire la taille des images
 import DatePicker, { getToday } from 'react-native-modern-datepicker'; // Date picker
+import { useAuth } from "../../components/AuthContext";
 
 
 import ImageViewer from "../../components/imageViewer";
@@ -29,6 +30,7 @@ import { IP_Server } from "../../components/const";
 const IP = IP_Server;
 
 export default function AddScreen({ navigation }) {
+  const { user, updateUser } = useAuth(); 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [images, setImages] = useState([]);
@@ -175,9 +177,6 @@ export default function AddScreen({ navigation }) {
   }, [coordinates]);
 
 
-
-  const userId = 2;
-
   const sendForm = async () => {
     setSubmitButtonClicked(true);
 
@@ -192,7 +191,7 @@ export default function AddScreen({ navigation }) {
       const advertisementResponse = await axios.post(`${IP}/advertisements/create`, {
         title,
         description,
-        user_id: userId, 
+        user_id: user.id, 
         longitude: coordinates.lng,
         latitude: coordinates.lat,
         category_id: categoryValue,
@@ -235,17 +234,20 @@ export default function AddScreen({ navigation }) {
         const imageResponse = await axios.post(`${IP}/images/upload/${advertisementId}`, {
           image: base64,
         });
-
-        console.log(imageResponse.data); // Afficher la réponse du serveur (optionnel)
       }
-      // Toutes les images ont été envoyées avec succès
       console.log("Toutes les images ont été envoyées avec succès !");
     } catch (error) {
       console.error("Une erreur s'est produite lors de l'envoi des images :", error);
-      // Gérer l'erreur selon vos besoins
     }
   };
-  
+
+  if (!user) {
+    return (
+      <View style={styles.Informationcontainer}>
+        <Text style={styles.InformationMessage}>Vous devez être connecté pour ajouter une annonce.</Text>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView behavior="padding" style={styles.container}>
@@ -610,6 +612,16 @@ const styles = StyleSheet.create({
     color: 'red',
     fontSize:
     12,
+  },
+  Informationcontainer:{
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+  },
+  InformationMessage:{
+    color: "black",
+    color: "#9b9b9b",
   },
   datePicker: {
     backgroundColor: "white",

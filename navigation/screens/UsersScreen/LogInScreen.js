@@ -3,15 +3,14 @@ import bcrypt from "react-native-bcrypt";
 import { View, Text, TextInput, Button, StyleSheet } from "react-native";
 import { IP_Server } from "../../../components/const";
 import { useAuth } from "../../../components/AuthContext";
-import ProfileScreen from "../ProfileScreen";
 import ButtonEdit from "../../../components/button";
 
 const LogInScreen = ({ onLogin, onSignUp }) => {
   const { isLoggedIn, login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const IP = IP_Server;
-  const [isLog, setIsLog] = useState(false);
 
   const handleLogin = () => {
     const url = `${IP}/users/log_infos/${encodeURIComponent(email)}`;
@@ -33,16 +32,16 @@ const LogInScreen = ({ onLogin, onSignUp }) => {
             storedHashedPassword
           );
 
-          console.log("Fetch password:", storedHashedPassword);
-
           if (passwordMatches) {
             console.log("Connecté");
-            onLogin(user);
             login(user);
+            onLogin();
           } else {
+            setErrorMessage("Email ou mot de passe incorrect");
             console.log("Les mots de passe ne correspondent pas");
           }
         } else {
+          setErrorMessage("Aucun utilisateur trouvé avec cet email");
           console.error("Aucun utilisateur trouvé avec cet email.");
         }
       })
@@ -66,6 +65,9 @@ const LogInScreen = ({ onLogin, onSignUp }) => {
           value={password}
           secureTextEntry
         />
+        {errorMessage ? ( // Affiche le message d'erreur s'il existe
+        <Text style={styles.errorMessage}>{errorMessage}</Text>
+      ) : null}
         <View style={styles.sendButtonContainer}>
           <ButtonEdit
             style={styles.sendButton}
@@ -107,6 +109,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 15,
+  },
+  errorMessage: {
+    color: "red",
+    marginBottom: 10,
   },
 });
 

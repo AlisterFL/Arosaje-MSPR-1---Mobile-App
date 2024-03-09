@@ -14,26 +14,22 @@ const ProfileScreen = () => {
   const [isSignUp, setIsSignUp] = useState(false);
 
   const handleLogin = () => {
-    console.log("utilisateur connécté")
+    setIsLoggedIn(true);
   };
 
   const handleLogout = () => {
-    // Réinitialise l'état de l'utilisateur et de la connexion
     setUser(null);
     setIsLoggedIn(false);
   };
 
   const handleSignUp = () => {
-    setIsSignUp(true); // Lorsque l'utilisateur souhaite s'inscrire, passez à true
+    setIsSignUp(true);
   };
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       {isLoggedIn ? (
-        <>
-          <UserInfoScreen user={user} />
-          <Button title="Logout" onPress={handleLogout} />
-        </>
+          <UserInfoScreen user={user} onLogOut={handleLogout}/>
       ) : (
         isSignUp ? (
           <SignUpScreen setIsSignUp={setIsSignUp} />

@@ -4,9 +4,7 @@ import { View, Text } from 'react-native';
 export default function ResearchScreen({navigation}) {
     return (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Text
-                onPress={() => navigation.navigate('Home')}
-                style={{ fontSize: 26, fontWeight: 'bold' }}>Research Screen</Text>
+            <Text style={{color: "#9b9b9b",}}>Prochainement ...</Text>
         </View>
     );
 }
