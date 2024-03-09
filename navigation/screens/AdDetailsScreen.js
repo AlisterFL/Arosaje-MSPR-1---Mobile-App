@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
+  TextInput,
   ScrollView,
   TouchableOpacity,
   StatusBar,
@@ -13,9 +14,10 @@ import {
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import MapView, { Circle } from "react-native-maps";
-import Carousel, { Pagination } from 'react-native-snap-carousel';
+import Carousel, { Pagination } from "react-native-snap-carousel";
 import { IP_Server } from "../../components/const";
 import ButtonEdit from "../../components/button";
+import { useAuth } from "../../components/AuthContext";
 
 const IP = IP_Server;
 const windowDimensions = Dimensions.get("window");
@@ -29,7 +31,12 @@ const AdDetailsScreen = () => {
   const [imagesData, setImagesData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [user, setUser] = useState(null);
+  const [advice, setAdviceData] = useState(null);
+  const [newAdvice, setNewAdvice] = useState("");
+  const [userAuthor, setUserAuthor] = useState(null);
+  const { user } = useAuth();
+
+  console.log("user connecté", user);
 
   useEffect(() => {
     const fetchAdDetails = async () => {
@@ -43,13 +50,20 @@ const AdDetailsScreen = () => {
 
         // Récupération des informations de l'utilisateur
         const userResponse = await fetch(`${IP}/users/${data.user_id}`);
-        const userData = await userResponse.json();
+        const userAuthorData = await userResponse.json();
 
-        setUser(userData);
+        // Récupération des conseils
+        const adviceResponse = await fetch(
+          `${IP}/advices/advertisement/${adId}`
+        );
+        const adviceData = await adviceResponse.json();
 
-        console.log(user)
+        setUserAuthor(userAuthorData);
+
+        console.log(userAuthor);
         setAdData(data);
         setImagesData(imagesData);
+        setAdviceData(adviceData);
         setLoading(false);
       } catch (error) {
         console.error(
@@ -62,35 +76,71 @@ const AdDetailsScreen = () => {
     fetchAdDetails();
   }, []);
 
+  const handleNewAdviceChange = (text) => {
+    setNewAdvice(text);
+  };
+  const handleSubmitAdvice = async () => {
+    try {
+      // Vérifier que le champ de texte n'est pas vide
+      if (newAdvice.trim() === "") {
+        // Afficher une alerte ou un message indiquant que le champ est vide
+        return;
+      }
+
+      // Envoyer le nouveau conseil à l'API
+      const response = await fetch(`${IP}/advices/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          advertisement_id: adId,
+          advice: newAdvice,
+          user_id: user.id, // Assurez-vous de stocker l'ID de l'utilisateur connecté
+        }),
+      });
+
+      if (response.ok) {
+        // Conseil partagé avec succès, réinitialiser le champ de texte
+        setNewAdvice("");
+        // Afficher un message de confirmation
+        alert("Conseil partagé avec succès !");
+      } else {
+        // Afficher une alerte ou un message en cas d'erreur lors de l'envoi du conseil
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'envoi du conseil :", error);
+      // Afficher une alerte ou un message en cas d'erreur
+    }
+  };
+
   const handleGoBack = () => {
     navigation.goBack();
   };
-
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <StatusBar translucent backgroundColor="transparent" />
       <ScrollView>
         <View style={styles.header}>
-            <ButtonEdit
-              style={styles.sendButton}
-              theme="primary-border-small"
-              label="Retour"
-              onPress={handleGoBack}
-            />
+          <ButtonEdit
+            style={styles.sendButton}
+            theme="primary-border-small"
+            label="Retour"
+            onPress={handleGoBack}
+          />
           {loading && <ActivityIndicator size="small" color="#A3D288" />}
-          </View>
-          {!loading && (
-            <View style={{ flex: 1}}>
-              {/* Utilisation du Carousel pour afficher les images */}
-              <Carousel
-              data={imagesData.map(image => ({ image: `data:image/jpeg;base64,${image.image}` }))} // Convertir les données d'image
+        </View>
+        {!loading && (
+          <View style={{ flex: 1 }}>
+            {/* Utilisation du Carousel pour afficher les images */}
+            <Carousel
+              data={imagesData.map((image) => ({
+                image: `data:image/jpeg;base64,${image.image}`,
+              }))} // Convertir les données d'image
               renderItem={({ item }) => (
                 <View>
-                  <Image
-                    source={{ uri: item.image }}
-                    style={styles.image}
-                  />
+                  <Image source={{ uri: item.image }} style={styles.image} />
                   <Pagination
                     dotsLength={imagesData.length}
                     activeDotIndex={activeIndex}
@@ -107,19 +157,28 @@ const AdDetailsScreen = () => {
               onSnapToItem={(index) => setActiveIndex(index)} // Mettre à jour l'index actif lors du changement de diapositive
             />
             <View style={styles.infoContainer}>
-              {user && (
-                <View style={styles.author}>
-                  <View style={{flexDirection: "row", alignItems:"center", gap: 15}}>
-                    <Image source={require('../../assets/profile_image.png')} style={styles.profileImage} />
-                    <Text style={styles.text}>{user.first_name} {user.last_name}</Text>
-                  </View>
-                  <ButtonEdit
-                    style={styles.messageButton}
-                    theme="primary-border-small"
-                    label="message"
+              <View style={styles.author}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 15,
+                  }}
+                >
+                  <Image
+                    source={require("../../assets/profile_image.png")}
+                    style={styles.profileImage}
                   />
+                  <Text style={styles.text}>
+                    {userAuthor.first_name} {userAuthor.last_name}
+                  </Text>
                 </View>
-              )}
+                <ButtonEdit
+                  style={styles.messageButton}
+                  theme="primary-border-small"
+                  label="message"
+                />
+              </View>
               <Text style={styles.title}>{adData ? adData.title : ""}</Text>
               <Text style={styles.description}>
                 {adData ? adData.description : ""}
@@ -128,13 +187,43 @@ const AdDetailsScreen = () => {
               <View style={styles.divider}></View>
 
               <View style={styles.advices}>
-                <Text style={styles.locationText}>0 conseils :</Text>
+                <Text style={styles.locationText}>
+                  {advice && advice.length} conseils :
+                </Text>
+
+                {user && (
+                  <View style={styles.newAdviceContainer}>
+                    <TextInput
+                      style={styles.input}
+                      onChangeText={handleNewAdviceChange}
+                      value={newAdvice}
+                      placeholder="Donnez un conseil"
+                      multiline={true}
+                    />
+                    <ButtonEdit theme="just-icon" border={1} icon="enter" color="gray" size={20} onPress={handleSubmitAdvice}/>
+                  </View>
+                )}
+
+                {advice &&
+                  advice.map((conseil, index) => (
+                    <View key={conseil.id} style={styles.conseilContainer}>
+                      <Text style={{fontSize:14, fontWeight:"bold"}}>
+                        {conseil.first_name} {conseil.last_name}
+                      </Text>
+                      <Text>{conseil.advice}</Text>
+                      {index !== advice.length - 1 && (
+                        <View style={styles.separator} />
+                      )}
+                    </View>
+                  ))}
               </View>
 
               <View style={styles.divider}></View>
 
               <View style={styles.mapContainer}>
-                <Text style={styles.locationText}>Ou se trouve le gardiennage :</Text>
+                <Text style={styles.locationText}>
+                  Ou se trouve le gardiennage :
+                </Text>
                 <View style={styles.mapBlock}>
                   {!loading && (
                     <MapView
@@ -168,22 +257,22 @@ const AdDetailsScreen = () => {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: "#ccc",
   },
   backButton: {
     padding: 10,
   },
   title: {
-    marginTop : 20,
+    marginTop: 20,
     fontSize: 22,
   },
   description: {
-    fontSize: 18
+    fontSize: 18,
   },
   image: {
     width: windowDimensions.width,
@@ -193,16 +282,17 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   label: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 5,
   },
   locationText: {
-    fontSize:20,
+    fontSize: 20,
+    marginBottom: 10,
   },
   mapBlock: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   map: {
     marginVertical: 30,
@@ -234,7 +324,6 @@ const styles = StyleSheet.create({
   messageButton: {
     padding: 0,
     margin: 0,
-
   },
   author: {
     flexDirection: "row",
@@ -250,9 +339,29 @@ const styles = StyleSheet.create({
   },
   divider: {
     borderBottomWidth: 2,
-    borderBottomColor: '#DDDDDD',
+    borderBottomColor: "#DDDDDD",
     marginVertical: 20,
   },
+  separator: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#DDDDDD",
+    marginHorizontal: 40,
+    marginVertical: 10,
+  },
+  input: {
+    height: 50,
+    flex: 1,
+    borderColor: "gray",
+    borderWidth: 1,
+    marginBottom: 15,
+    paddingHorizontal: 10,
+    borderRadius:10,
+  },
+  newAdviceContainer:{
+    flexDirection: "row",
+    flex: 1,
+    gap: 10,
+  }
 });
 
 export default AdDetailsScreen;

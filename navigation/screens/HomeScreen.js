@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  ScrollView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { IP_Server } from '../../components/const'; 
@@ -20,6 +19,7 @@ const HomeScreen = () => {
   const [loading, setLoading] = useState(true);
   const [subCategories, setSubCategories] = useState([]);
   const navigation = useNavigation();
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
 
@@ -145,14 +145,28 @@ const HomeScreen = () => {
 
   return (
     <View style={{ flex: 1 }}>
-      <FlatList
-        data={categoriesWithAds}
-        renderItem={renderCategoryItem}
-        keyExtractor={(category) => category.id.toString()}
-      />
+    <FlatList
+      data={categoriesWithAds}
+      renderItem={renderCategoryItem}
+      keyExtractor={(category) => category.id.toString()}
+      onRefresh={handleRefresh}
+      refreshing={refreshing}
+    />
     </View>
   );
 };
+
+const handleRefresh = async () => {
+  setRefreshing(true);
+  try {
+    // Mettez à jour les données en fonction de vos besoins
+    await fetchCategoriesWithAds();
+  } catch (error) {
+    console.error("Erreur lors du rafraîchissement des données :", error);
+  }
+  setRefreshing(false);
+};
+
 
 export default HomeScreen;
 

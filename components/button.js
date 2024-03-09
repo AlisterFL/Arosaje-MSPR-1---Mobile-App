@@ -9,6 +9,7 @@ export default function ButtonEdit({
   size = 20,
   color = "#A3D288",
   disabled = false,
+  border = 2,
 }) {
   if (theme === "primary-icon") {
     return (
@@ -57,7 +58,7 @@ export default function ButtonEdit({
       <View
         style={[
           styles.buttonContainer,
-          { borderWidth: 2, borderColor: "#A3D288" },
+          { borderWidth: border, borderColor: "#A3D288" },
         ]}
       >
         <Pressable
@@ -74,7 +75,7 @@ export default function ButtonEdit({
       <View
         style={[
           styles.buttonContainer,
-          { borderWidth: 2, borderColor: "#A3D288" },
+          { borderWidth: border, borderColor: "#A3D288" },
         ]}
       >
         <Pressable
@@ -93,7 +94,7 @@ export default function ButtonEdit({
       <View
         style={[
           styles.buttonContainerSmall,
-          { borderWidth: 2, borderColor: "#A3D288" },
+          { borderWidth: border, borderColor: "#A3D288" },
         ]}
       >
         <Pressable
@@ -112,7 +113,7 @@ export default function ButtonEdit({
       <View
         style={[
           styles.buttonContainerJustIcon,
-          { borderWidth: 2, borderColor: "#A3D288" },
+          { borderWidth: border, borderColor: color },
         ]}
       >
         <Pressable onPress={onPress} disabled={disabled}>
@@ -125,7 +126,7 @@ export default function ButtonEdit({
       <View
         style={[
           styles.buttonContainerLittle,
-          { borderWidth: 2, borderColor: color, borderRadius: 18 },
+          { borderWidth: border, borderColor: color, borderRadius: 18 },
         ]}
       >
         <Pressable
